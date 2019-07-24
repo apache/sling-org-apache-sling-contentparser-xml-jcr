@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
@@ -35,11 +35,9 @@ import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.contentparser.api.ContentHandler;
 import org.apache.sling.contentparser.api.ContentParser;
-import org.apache.sling.contentparser.api.ParseException;
 import org.apache.sling.contentparser.api.ParserOptions;
 import org.osgi.service.component.annotations.Component;
 import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -54,12 +52,18 @@ public final class JCRXMLContentParser implements ContentParser {
     private final SAXParserFactory saxParserFactory;
 
     public JCRXMLContentParser() {
-        saxParserFactory = SAXParserFactory.newInstance();
-        saxParserFactory.setNamespaceAware(true);
+        try {
+            SAXParserFactory spf = SAXParserFactory.newInstance();
+            spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
+            spf.setNamespaceAware(true);
+            saxParserFactory = spf;
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to enable secure processing.", e);
+        }
     }
 
     @Override
-    public void parse(ContentHandler handler, InputStream is, ParserOptions parserOptions) throws IOException, ParseException {
+    public void parse(ContentHandler handler, InputStream is, ParserOptions parserOptions) throws IOException {
         try {
             XmlHandler xmlHandler = new XmlHandler(handler, parserOptions);
             SAXParser parser = saxParserFactory.newSAXParser();
@@ -67,8 +71,8 @@ public final class JCRXMLContentParser implements ContentParser {
             if (xmlHandler.hasError()) {
                 throw xmlHandler.getError();
             }
-        } catch (ParserConfigurationException | SAXException ex) {
-            throw new ParseException("Error parsing JCR XML content.", ex);
+        } catch (Exception ex) {
+            throw new IOException("Error parsing JCR XML content.", ex);
         }
     }
 
@@ -85,7 +89,7 @@ public final class JCRXMLContentParser implements ContentParser {
     /**
      * Parses XML stream to Map.
      */
-    class XmlHandler extends DefaultHandler {
+    private static class XmlHandler extends DefaultHandler {
         private final ContentHandler contentHandler;
         private final ParserOptions parserOptions;
         private final Deque<String> paths = new ArrayDeque<>();
@@ -140,10 +144,8 @@ public final class JCRXMLContentParser implements ContentParser {
                 }
             }
             String defaultPrimaryType = parserOptions.getDefaultPrimaryType();
-            if (defaultPrimaryType != null) {
-                if (!properties.containsKey(JcrConstants.JCR_PRIMARYTYPE)) {
-                    properties.put(JcrConstants.JCR_PRIMARYTYPE, defaultPrimaryType);
-                }
+            if (defaultPrimaryType != null && !properties.containsKey(JcrConstants.JCR_PRIMARYTYPE)) {
+                properties.put(JcrConstants.JCR_PRIMARYTYPE, defaultPrimaryType);
             }
             contentHandler.resource(path, properties);
         }
@@ -170,8 +172,8 @@ public final class JCRXMLContentParser implements ContentParser {
             if (ignoredPaths.contains(path)) {
                 return true;
             }
-            if (path.contains("/")) {
-                String parentPath = path.substring(0, path.lastIndexOf("/"));
+            if (path.indexOf('/') > -1) {
+                String parentPath = path.substring(0, path.lastIndexOf('/'));
                 return isIgnoredPath(parentPath);
             } else {
                 return isIgnoredPath(path);

@@ -19,6 +19,7 @@
 package org.apache.sling.contentparser.xml.jcr.internal;
 
 import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -29,7 +30,6 @@ import java.util.TimeZone;
 
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.sling.contentparser.api.ContentParser;
-import org.apache.sling.contentparser.api.ParseException;
 import org.apache.sling.contentparser.api.ParserOptions;
 import org.apache.sling.contentparser.testutils.mapsupport.ContentElement;
 import org.junit.Before;
@@ -62,7 +62,7 @@ public class JCRXMLContentParserTest {
         assertEquals("app:PageContent", child.getProperties().get("jcr:primaryType"));
     }
 
-    @Test(expected= ParseException.class)
+    @Test(expected= IOException.class)
     public void testParseInvalidJcrXml() throws Exception {
         file = new File("src/test/resources/invalid-test/invalid.jcr.xml");
         parse(underTest, file);
