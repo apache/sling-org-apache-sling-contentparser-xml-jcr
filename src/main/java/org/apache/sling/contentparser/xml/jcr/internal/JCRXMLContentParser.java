@@ -1,22 +1,26 @@
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- ~ Licensed to the Apache Software Foundation (ASF) under one
- ~ or more contributor license agreements.  See the NOTICE file
- ~ distributed with this work for additional information
- ~ regarding copyright ownership.  The ASF licenses this file
- ~ to you under the Apache License, Version 2.0 (the
- ~ "License"); you may not use this file except in compliance
- ~ with the License.  You may obtain a copy of the License at
- ~
- ~   http://www.apache.org/licenses/LICENSE-2.0
- ~
- ~ Unless required by applicable law or agreed to in writing,
- ~ software distributed under the License is distributed on an
- ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- ~ KIND, either express or implied.  See the License for the
- ~ specific language governing permissions and limitations
- ~ under the License.
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.sling.contentparser.xml.jcr.internal;
+
+import javax.xml.XMLConstants;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,10 +30,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import javax.xml.XMLConstants;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.jackrabbit.util.ISO9075;
@@ -43,10 +43,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 @Component(
         service = ContentParser.class,
-        property = {
-                ContentParser.SERVICE_PROPERTY_CONTENT_TYPE + "=jcr-xml"
-        }
-)
+        property = {ContentParser.SERVICE_PROPERTY_CONTENT_TYPE + "=jcr-xml"})
 public final class JCRXMLContentParser implements ContentParser {
 
     private final SAXParserFactory saxParserFactory;
@@ -134,8 +131,8 @@ public final class JCRXMLContentParser implements ContentParser {
             // get properties
             Map<String, Object> properties = new HashMap<>();
             for (int i = 0; i < attributes.getLength(); i++) {
-                String propertyName = removePrefixFromPropertyName(parserOptions.getRemovePropertyNamePrefixes(),
-                        decodeName(attributes.getQName(i)));
+                String propertyName = removePrefixFromPropertyName(
+                        parserOptions.getRemovePropertyNamePrefixes(), decodeName(attributes.getQName(i)));
                 if (!parserOptions.getIgnorePropertyNames().contains(propertyName)) {
                     Object value = JcrXmlValueConverter.parseValue(propertyName, attributes.getValue(i));
                     if (value != null) {
@@ -178,7 +175,6 @@ public final class JCRXMLContentParser implements ContentParser {
             } else {
                 return isIgnoredPath(path);
             }
-
         }
 
         private String removePrefixFromPropertyName(Set<String> prefixes, String propertyName) {
@@ -189,7 +185,5 @@ public final class JCRXMLContentParser implements ContentParser {
             }
             return propertyName;
         }
-
     }
-
 }

@@ -1,21 +1,21 @@
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- ~ Licensed to the Apache Software Foundation (ASF) under one
- ~ or more contributor license agreements.  See the NOTICE file
- ~ distributed with this work for additional information
- ~ regarding copyright ownership.  The ASF licenses this file
- ~ to you under the Apache License, Version 2.0 (the
- ~ "License"); you may not use this file except in compliance
- ~ with the License.  You may obtain a copy of the License at
- ~
- ~   http://www.apache.org/licenses/LICENSE-2.0
- ~
- ~ Unless required by applicable law or agreed to in writing,
- ~ software distributed under the License is distributed on an
- ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- ~ KIND, either express or implied.  See the License for the
- ~ specific language governing permissions and limitations
- ~ under the License.
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.sling.contentparser.xml.jcr.internal;
 
 import java.io.File;
@@ -62,7 +62,7 @@ public class JCRXMLContentParserTest {
         assertEquals("app:PageContent", child.getProperties().get("jcr:primaryType"));
     }
 
-    @Test(expected= IOException.class)
+    @Test(expected = IOException.class)
     public void testParseInvalidJcrXml() throws Exception {
         file = new File("src/test/resources/invalid-test/invalid.jcr.xml");
         parse(underTest, file);
@@ -73,17 +73,17 @@ public class JCRXMLContentParserTest {
         ContentElement content = parse(underTest, file);
         ContentElement child = content.getChild("jcr:content");
         assertNotNull("Expected child at jcr:content", child);
-        Map<String,Object> props = child.getProperties();
-        
+        Map<String, Object> props = child.getProperties();
+
         assertEquals("en", props.get("jcr:title"));
         assertEquals(true, props.get("includeAside"));
         assertEquals(1234567890123L, props.get("longProp"));
         assertEquals(new BigDecimal("1.2345"), props.get("decimalProp"));
-        
-        assertArrayEquals(new String[] { "aa", "bb", "cc" }, (String[])props.get("stringPropMulti"));
-        assertArrayEquals(new Long[] { 1234567890123L, 55L }, (Long[])props.get("longPropMulti"));
-        
-        Calendar calendar = (Calendar)props.get("dateProp");
+
+        assertArrayEquals(new String[] {"aa", "bb", "cc"}, (String[]) props.get("stringPropMulti"));
+        assertArrayEquals(new Long[] {1234567890123L, 55L}, (Long[]) props.get("longPropMulti"));
+
+        Calendar calendar = (Calendar) props.get("dateProp");
         calendar.setTimeZone(TimeZone.getTimeZone("GMT+2"));
         assertEquals(2014, calendar.get(Calendar.YEAR));
         assertEquals(9, calendar.get(Calendar.MONTH) + 1);
@@ -102,15 +102,20 @@ public class JCRXMLContentParserTest {
 
     @Test
     public void testIgnoreResourcesProperties() throws Exception {
-        ContentElement content = parse(underTest,
-                new ParserOptions().ignoreResourceNames(Collections.unmodifiableSet(new HashSet<>(Arrays.asList("teaserbar", "aside"))))
-                        .ignorePropertyNames(Collections.unmodifiableSet(new HashSet<>(Arrays.asList("longProp", "jcr:title")))), file);
+        ContentElement content = parse(
+                underTest,
+                new ParserOptions()
+                        .ignoreResourceNames(
+                                Collections.unmodifiableSet(new HashSet<>(Arrays.asList("teaserbar", "aside"))))
+                        .ignorePropertyNames(
+                                Collections.unmodifiableSet(new HashSet<>(Arrays.asList("longProp", "jcr:title")))),
+                file);
         ContentElement child = content.getChild("jcr:content");
         assertNotNull("Expected child at jcr:content", child);
         assertEquals("HOME", child.getProperties().get("navTitle"));
         assertNull(child.getProperties().get("jcr:title"));
         assertNull(child.getProperties().get("longProp"));
-        
+
         assertNull(child.getChildren().get("teaserbar"));
         assertNull(child.getChildren().get("aside"));
         assertNotNull(child.getChildren().get("content"));
@@ -120,11 +125,13 @@ public class JCRXMLContentParserTest {
     public void testGetChild() throws Exception {
         ContentElement content = parse(underTest, file);
         assertNull(content.getName());
-        
+
         ContentElement deepChild = content.getChild("jcr:content/teaserbar/teaserbaritem");
         assertNotNull("Expected child at jcr:content/teaserbar/teaserbaritem", deepChild);
         assertEquals("teaserbaritem", deepChild.getName());
-        assertEquals("samples/sample-app/components/content/teaserbar/teaserbarItem", deepChild.getProperties().get("sling:resourceType"));
+        assertEquals(
+                "samples/sample-app/components/content/teaserbar/teaserbarItem",
+                deepChild.getProperties().get("sling:resourceType"));
 
         ContentElement invalidChild = content.getChild("non/existing/path");
         assertNull(invalidChild);
@@ -142,5 +149,4 @@ public class JCRXMLContentParserTest {
         assertEquals("test", child.getProperties().get("teaserbaritem"));
         assertNotNull(child.getChildren().get("teaserbaritem"));
     }
-
 }
